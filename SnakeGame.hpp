@@ -41,6 +41,7 @@ private:
     bool gateInUse = false;
     bool isOppositeDirection(Direction nextDirection);
     bool setGateExit(SnakePiece& next, Gate* exitGate);
+    void createGates();
     void removeGates();
 public:
     SnakeGame(int height, int width);

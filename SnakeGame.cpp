@@ -27,7 +27,6 @@ void SnakeGame::initialize()
     gateInUse = false;
     gameOver = false;
     p = std::make_pair(-1, -1);
-    maxSnake = snake.getSnakeSize();
     
     board.initialize();
     board.updateScoreGrow(0);
@@ -58,6 +57,7 @@ void SnakeGame::initialize()
     board.add(next);
     snake.addPiece(next);
     board.updateScoreCurSnake(snake.getSnakeSize());
+    maxSnake = snake.getSnakeSize();
     board.updateScoreMaxSnake(snake.getSnakeSize());
 }
 // 꾹 누르게 되면 값은 변화하지 않는게 맞는데 단 input의 빠르게 많이 반복하여
@@ -174,7 +174,8 @@ bool SnakeGame::setGateExit(SnakePiece& next, Gate* exitGate)
         int nextX = gateX + dx;
         if (nextY < 0 || nextY >= height || nextX < 0 || nextX >= width) continue;
 
-        if (mvwinch(board.getBoardWin(), nextY, nextX) == ' ')
+        chtype nextCell = mvwinch(board.getBoardWin(), nextY, nextX) & A_CHARTEXT;
+        if (nextCell == ' ' || nextCell == '@' || nextCell == 'P' || nextCell == '!')
         {
             next.setY(nextY);
             next.setX(nextX);
@@ -187,6 +188,22 @@ bool SnakeGame::setGateExit(SnakePiece& next, Gate* exitGate)
 
     gameOver = true;
     return false;
+}
+
+void SnakeGame::createGates()
+{
+    int yA, xA, yB, xB;
+
+    board.getWallCoordinates(yA, xA);
+    do
+    {
+        board.getWallCoordinates(yB, xB);
+    } while (yA == yB && xA == xB);
+
+    gateA = new Gate(yA, xA);
+    gateB = new Gate(yB, xB);
+    board.add(*gateA);
+    board.add(*gateB);
 }
 
 void SnakeGame::removeGates()
@@ -251,17 +268,29 @@ void SnakeGame::updateState()
     // 게이트 생성
     if (gateA == nullptr && gateB == nullptr && !gateInUse)
     {
-        int y, x;
-        board.getWallCoordinates(y, x);
-        gateA = new Gate(y, x);
-        board.add(*gateA);
-        board.getWallCoordinates(y, x);
-        gateB = new Gate(y, x);
-        board.add(*gateB);
+        createGates();
     }
     SnakePiece next = snake.nextHead();
-    // 아이템이 아닌 곳을 다니는 경우
-    if (next.getX() != itemGrow->getX() || next.getY() != itemGrow->getY())
+
+    // Gate에 들어가면 먼저 출구 좌표와 방향을 확정한다.
+    if ((mvwinch(board.getBoardWin(), next.getY(), next.getX()) & A_CHARTEXT) == 'O') 
+    {
+        if (next.getX() == gateA->getX() && next.getY() == gateA->getY())
+        {
+            gateInUse = setGateExit(next, gateB);
+        }
+        else if (next.getX() == gateB->getX() && next.getY() == gateB->getY())
+        {
+            gateInUse = setGateExit(next, gateA);
+        }
+    }
+
+    bool ateGrow = (next.getX() == itemGrow->getX() && next.getY() == itemGrow->getY());
+    bool atePoison = (next.getX() == itemPoison->getX() && next.getY() == itemPoison->getY());
+    bool ateSpeed = (next.getX() == itemSpeed->getX() && next.getY() == itemSpeed->getY());
+
+    // Growth가 아닌 이동은 기본적으로 꼬리를 한 칸 지운다.
+    if (!ateGrow)
     {
         int emptyRow = snake.tail().getY();
         int emptyCol = snake.tail().getX();
@@ -273,19 +302,15 @@ void SnakeGame::updateState()
     {
         next.setIcon('*');
         growNumber += 1;
-        //snake.addPiece(next);
-        //board.add(next);
         board.updateScoreGrow(growNumber);
-        //board.updateMissionGrow(growNumber);
         delete itemGrow;
         itemGrow = nullptr;
     }
     // 독을 먹은 경우
-    if (next.getX() == itemPoison->getX() && next.getY() == itemPoison->getY())
+    if (atePoison)
     {
         poisonNumber += 1;
         board.updateScorePoison(poisonNumber);
-        //board.updateMissionPoison(poisonNumber);
         int emptyRow = snake.tail().getY();
         int emptyCol = snake.tail().getX();
         board.add(Empty(emptyRow, emptyCol));
@@ -295,30 +320,13 @@ void SnakeGame::updateState()
         itemPoison = nullptr;
     }
     // 속도를 먹은 경우
-    if (next.getX() == itemSpeed->getX() && next.getY() == itemSpeed->getY())
+    if (ateSpeed)
     {
-        int emptyRow = snake.tail().getY();
-        int emptyCol = snake.tail().getX();
-        board.add(Empty(emptyRow, emptyCol));
         int randomSpeed = rand() % 500 + 200;
         wtimeout(getBoardWin(), randomSpeed); // 속도 변화를 1~ 500로
         
         delete itemSpeed;
         itemSpeed = nullptr;
-    }
-    // 게이트 통과 구현 방향조절 해줘야함 -> 미구현, tail이 통과한 후엔 두 게이트를 nullptr로 만들고 벽을 다시 x로 해야함 >> 구현 완료
-    if (mvwinch(board.getBoardWin(), next.getY(), next.getX()) == 'O') 
-    {
-        // A -> B로
-        if (next.getX() == gateA->getX() && next.getY() == gateA->getY())
-        {
-            gateInUse = setGateExit(next, gateB);
-        }// B -> A로
-        else if (next.getX() == gateB->getX() && next.getY() == gateB->getY())
-        {
-            gateInUse = setGateExit(next, gateA);
-        }
-          
     }
     // 다 통과하고 나서 되야함 >> snake 꼬리의 좌표가 게이트 출구와 일치한 경우로 판단
     if (gateInUse && snake.tail().getY() == p.first && snake.tail().getX() == p.second)
