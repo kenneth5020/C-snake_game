@@ -365,7 +365,7 @@ void SnakeGame::updateState()
         next.setIcon('$');
         gameOver = true;
     }
-    if (mvwinch(board.getBoardWin(), next.getY(), next.getX()) == 'x') 
+    if (mvwinch(board.getBoardWin(), next.getY(), next.getX()) == 'W') 
     {
         next.setIcon('x');
         gameOver = true;
