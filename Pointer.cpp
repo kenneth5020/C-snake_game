@@ -1,7 +1,7 @@
 #include "Pointer.hpp"
 
 Pointer::Pointer(int y, int x, chtype ch)
-    : y(y), x(x), icon(ch)
+    : x(x), y(y), icon(ch)
 {
 }
 
