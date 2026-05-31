@@ -39,6 +39,7 @@ private:
     int randomNumD = rand() % 2 + 1;
     std::pair<int, int> p;
     bool gateInUse = false;
+    int gameSpeed=200;
     bool isOppositeDirection(Direction nextDirection);
     bool setGateExit(SnakePiece& next, Gate* exitGate);
     void createGates();
