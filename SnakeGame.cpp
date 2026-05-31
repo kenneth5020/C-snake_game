@@ -322,11 +322,10 @@ void SnakeGame::updateState()
     // 속도를 먹은 경우
     if (ateSpeed)
     {
-        int randomSpeed = rand() % 500 + 200;
-        wtimeout(getBoardWin(), randomSpeed); // 속도 변화를 1~ 500로
-        
-        delete itemSpeed;
-        itemSpeed = nullptr;
+    wtimeout(getBoardWin(), 100); // * 아이템을 먹으면 속도 증가
+    
+    delete itemSpeed;
+    itemSpeed = nullptr;
     }
     // 다 통과하고 나서 되야함 >> snake 꼬리의 좌표가 게이트 출구와 일치한 경우로 판단
     if (gateInUse && snake.tail().getY() == p.first && snake.tail().getX() == p.second)
