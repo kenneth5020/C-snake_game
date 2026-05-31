@@ -320,9 +320,14 @@ void SnakeGame::updateState()
         itemPoison = nullptr;
     }
     // 속도를 먹은 경우
-    if (ateSpeed)
+   if (ateSpeed)
     {
-    wtimeout(getBoardWin(), 100); // * 아이템을 먹으면 속도 증가
+    if (gameSpeed > 80)
+    {
+        gameSpeed -= 30; // 먹을 때마다 30씩 빨라짐
+    }
+
+    wtimeout(getBoardWin(), gameSpeed);
     
     delete itemSpeed;
     itemSpeed = nullptr;
@@ -597,7 +602,8 @@ void SnakeGame::moveGateBtoA(SnakePiece& next)
 
 void SnakeGame::stageClear() // 할당 및 값 해제
 {
-    wtimeout(getBoardWin(), 200);
+    gameSpeed=200;
+    wtimeout(getBoardWin(), gameSpeed);
     growNumber = 0;
     poisonNumber = 0;
     gateNumber = 0;
