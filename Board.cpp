@@ -48,7 +48,7 @@ void Board::initialize()
 
 void Board::drawMap()
 {
-    int (*currentMap)[BOARD_WIDTH] = mapData.getMap(stage);
+    const int (*currentMap)[BOARD_WIDTH] = mapData.getMap(stage);
 
     for (int i = 0; i < BOARD_HEIGHT; i++)
     {
