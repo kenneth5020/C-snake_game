@@ -273,7 +273,7 @@ void SnakeGame::updateState()
     SnakePiece next = snake.nextHead();
 
     // Gate에 들어가면 먼저 출구 좌표와 방향을 확정한다.
-    if ((mvwinch(board.getBoardWin(), next.getY(), next.getX()) & A_CHARTEXT) == 'O') 
+    if ((mvwinch(board.getBoardWin(), next.getY(), next.getX()) & A_CHARTEXT) == 'G') 
     {
         if (next.getX() == gateA->getX() && next.getY() == gateA->getY())
         {
